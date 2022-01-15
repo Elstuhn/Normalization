@@ -45,7 +45,7 @@ def calculateTorch(image : torch.tensor):
 
 def calcMStd(dataset : np.ndarray):
     dsShape = dataset.shape
-    if len(dsShape) != 4:
+    if not len(dsShape) in [4, 3]:
         raise Exception(f"A valid dataset has to be given! Dataset of shape {len(dataset.shape)} given.")
     elif not dsShape[-1] in [1, 3]:
         raise Exception("Only 1 or 3 channel images are supported! Image shape should be in [height, width, channels]")
@@ -91,26 +91,34 @@ def calcMStdtorch(dataset : Union[torch.tensor, np.ndarray]):
 
 def normalizeimgN(img : np.ndarray, mean : np.ndarray, std : np.ndarray):
     shape = img.shape 
-    r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+    if img.shape[-1] == 3:
+        r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+        channels = [r, g, b]
+    else:
+        channels = [img]
     chInd = 0
-    for channel in [r, g, b]:
+    for channel in channels:
         for row in range(shape[0]):
             for column in range(shape[1]):
                 channel[row][column] = (channel[row][column] - mean[chInd]) / std[chInd]
         chInd += 1
-    img = np.dstack((r, g, b))
+    img = np.dstack(channels)
     return img         
     
 def normalizeimgT(img : np.ndarray, mean : np.ndarray, std : np.ndarray):
     shape = img.shape 
-    r, g, b = img[0, :, :], img[1, :, :], img[2, :, :]
+    if img.shape[0] == 3:
+        r, g, b = img[0, :, :], img[1, :, :], img[2, :, :]
+        channels = [r, g, b]
+    else:
+        channels = [img]
     chInd = 0
-    for channel in [r, g, b]:
+    for channel in channels:
         for row in range(shape[1]):
             for column in range(shape[2]):
                 channel[row][column] = (channel[row][column] - mean[chInd]) / std[chInd]
         chInd += 1
-    img = np.dstack((r, g, b))
+    img = np.dstack(channels)
     img = np.moveaxis(img, -1, 0)
     return img         
     
